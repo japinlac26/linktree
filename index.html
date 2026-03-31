@@ -336,6 +336,89 @@
       letter-spacing: 0.8px;
       text-transform: uppercase;
     }
+
+    /* ── Music player ── */
+    .player {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 99px;
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      animation: fadeUp 0.6s ease 1s both;
+    }
+
+    .player:hover { background: rgba(0,0,0,0.7); border-color: rgba(255,255,255,0.16); }
+
+    .player-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: none;
+      cursor: pointer;
+      transition: background 0.18s;
+    }
+
+    .player-btn:hover { background: rgba(255,255,255,0.15); }
+    .player-btn svg { width: 12px; height: 12px; fill: rgba(255,255,255,0.8); }
+
+    .player-info { display: flex; flex-direction: column; gap: 1px; }
+
+    .player-title {
+      font-size: 11px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.8);
+      white-space: nowrap;
+      letter-spacing: 0.1px;
+    }
+
+    .player-artist {
+      font-size: 10px;
+      color: rgba(255,255,255,0.35);
+      white-space: nowrap;
+    }
+
+    /* Animated bars (playing indicator) */
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .bars span {
+      width: 2.5px;
+      border-radius: 2px;
+      background: var(--lavender);
+      animation: bar 1s ease-in-out infinite alternate;
+    }
+
+    .bars span:nth-child(1) { height: 6px;  animation-duration: 0.8s; }
+    .bars span:nth-child(2) { height: 12px; animation-duration: 1.1s; animation-delay: 0.2s; }
+    .bars span:nth-child(3) { height: 8px;  animation-duration: 0.9s; animation-delay: 0.1s; }
+    .bars span:nth-child(4) { height: 14px; animation-duration: 1.2s; animation-delay: 0.3s; }
+
+    @keyframes bar {
+      from { transform: scaleY(0.3); opacity: 0.5; }
+      to   { transform: scaleY(1);   opacity: 1; }
+    }
+
+    .bars.paused span { animation-play-state: paused; opacity: 0.3; }
   </style>
 </head>
 <body>
@@ -487,6 +570,25 @@
 
   </div>
 
+  <!-- Music player -->
+  <div class="player" onclick="togglePlay()">
+    <div class="bars" id="bars">
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div class="player-info">
+      <span class="player-title">Wait for It</span>
+      <span class="player-artist">Leslie Odom Jr. · Hamilton</span>
+    </div>
+    <button class="player-btn" id="play-btn" aria-label="Play/Pause">
+      <!-- Pause icon (shown while playing) -->
+      <svg id="icon-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      <!-- Play icon (shown while paused) -->
+      <svg id="icon-play" viewBox="0 0 24 24" style="display:none"><polygon points="5,3 19,12 5,21"/></svg>
+    </button>
+  </div>
+
+  <audio id="audio" src="music.mp3" loop></audio>
+
   <script>
     function copyLink() {
       navigator.clipboard.writeText('https://japinlac26.github.io/linktree/').then(() => {
@@ -495,6 +597,38 @@
         setTimeout(() => t.classList.remove('show'), 2200);
       });
     }
+
+    const audio = document.getElementById('audio');
+    const bars  = document.getElementById('bars');
+    const iconPlay  = document.getElementById('icon-play');
+    const iconPause = document.getElementById('icon-pause');
+
+    function setPlaying(playing) {
+      if (playing) {
+        bars.classList.remove('paused');
+        iconPause.style.display = '';
+        iconPlay.style.display  = 'none';
+      } else {
+        bars.classList.add('paused');
+        iconPause.style.display = 'none';
+        iconPlay.style.display  = '';
+      }
+    }
+
+    function togglePlay() {
+      if (audio.paused) {
+        audio.play().then(() => setPlaying(true)).catch(() => {});
+      } else {
+        audio.pause();
+        setPlaying(false);
+      }
+    }
+
+    // Auto-attempt on load
+    window.addEventListener('load', () => {
+      audio.volume = 0.5;
+      audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+    });
   </script>
 
 </body>
